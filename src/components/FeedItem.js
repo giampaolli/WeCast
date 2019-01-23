@@ -4,11 +4,15 @@ import imagePng from '../../assets/splash.png'
 
 export default class FeedItem extends Component {
     render() {
-        const  { feed } = this.props;
+        const  { feed, navigation } = this.props;
         return (
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('Player', {feed})}>
                 <View style={styles.container} >
-                    <Image style={styles.image} source={{url: feed.thumbnail}}/>
+                    <Image
+                        style={styles.image}
+                        source={{url: feed.thumbnail}}
+                        resizeMode={'center'}
+                    />
                     <View style={styles.textContainer}>
                         <Text style={styles.pubDate}>{feed.pubDate}</Text>
                         <Text style={styles.title}>{feed.title}</Text>
@@ -22,30 +26,37 @@ export default class FeedItem extends Component {
 
 const styles = StyleSheet.create({
     container: {
+        height: 120,
         width: '100%',
-        justifyContent: 'space-around',
+        alignItems: 'center',
         marginBottom: 10,
         padding: 10,
         flexDirection: 'row',
     },
     image: {
+        height: '100%',
         width: "30%",
     },
     textContainer: {
-        width: "70%"
+        width: "70%",
+        height: '100%',
+        paddingLeft: 10,
+        flexDirection: 'column',
+        justifyContent: 'space-between',
     },
     pubDate: {
         color: '#B7B7B7',
-        fontSize: 14,
+        fontSize: 12,
         letterSpacing: 0.4,
     },
     title: {
-        fontSize: 20,
+        fontSize: 18,
         flexWrap: 'wrap',
         letterSpacing: 0.4,
     },
     author: {
-        fontSize: 16,
+        fontSize: 14,
         letterSpacing: 0.4,
+        color: '#333333',
     },
 });

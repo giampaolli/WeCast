@@ -5,13 +5,10 @@ import FeedItem from './FeedItem'
 
 export default class FeedList extends Component {
     render() {
-        const  { items } = this.props;
-        if (items === undefined) return (<View><Text>carregando...</Text></View>);
+        const  { items, navigation } = this.props;
         return (
             <ScrollView style={styles.container}>
-                {
-                    items.map( feed => <FeedItem key={feed.guid} feed={feed}/>)
-                }
+                {items.map( feed => <FeedItem key={feed.guid} feed={feed} navigation={navigation}/>)}
             </ScrollView>
         )
     }
@@ -19,6 +16,7 @@ export default class FeedList extends Component {
 
 const styles = StyleSheet.create({
     container: {
+        height: '70%',
         width: '100%'
     }
 });
