@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
-import imagePng from '../../assets/splash.png'
 
 export default class FeedItem extends Component {
     render() {

@@ -23,7 +23,7 @@ export default class Feed extends React.Component {
         };
 
         const resp = await axios.get('https://api.rss2json.com/v1/api.json', {params: data});
-        // const resp = feedJson;
+        // const resp = {data: feedJson};
         this.setState({
             items: resp.data.items,
             feed: resp.data.feed,
