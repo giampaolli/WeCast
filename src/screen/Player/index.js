@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Asset, Audio, Font } from 'expo';
+import { Asset, Audio } from 'expo';
 import { MaterialIcons } from '@expo/vector-icons';
 
 class Icon {
@@ -19,19 +19,11 @@ class Icon {
     }
 }
 
-const ICON_PLAY_BUTTON = new Icon(require('../../../assets/images/play_button.png'), 34, 51);
-const ICON_PAUSE_BUTTON = new Icon(require('../../../assets/images/pause_button.png'), 34, 51);
-const ICON_STOP_BUTTON = new Icon(require('../../../assets/images/stop_button.png'), 22, 22);
+const ICON_PLAY_BUTTON = new Icon(require('../../../assets/images/play.png'), 34, 51);
+const ICON_PAUSE_BUTTON = new Icon(require('../../../assets/images/pause.png'), 34, 51);
+const ICON_STOP_BUTTON = new Icon(require('../../../assets/images/stop.png'), 22, 22);
 
-const ICON_MUTED_BUTTON = new Icon(require('../../../assets/images/muted_button.png'), 67, 58);
-
-const ICON_TRACK_1 = new Icon(require('../../../assets/images/track_1.png'), 166, 5);
-const ICON_THUMB_1 = new Icon(require('../../../assets/images/thumb_1.png'), 18, 19);
-const ICON_THUMB_2 = new Icon(require('../../../assets/images/thumb_2.png'), 15, 19);
-
-const BACKGROUND_COLOR = '#FFF8ED';
 const DISABLED_OPACITY = 0.5;
-const BUFFERING_STRING = '...buffering...';
 
 export default class App extends React.Component {
     constructor(props) {
@@ -48,7 +40,6 @@ export default class App extends React.Component {
             isPlaying: false,
             isBuffering: false,
             isLoading: true,
-            fontLoaded: false,
             shouldCorrectPitch: true,
             volume: 1.0,
             rate: 1.0,
@@ -65,13 +56,13 @@ export default class App extends React.Component {
             playThroughEarpieceAndroid: false,
         });
         (async () => {
-            await Font.loadAsync({
-                ...MaterialIcons.font,
-                'cutive-mono-regular': require('../../../assets/fonts/CutiveMono-Regular.ttf'),
-            });
-            this.setState({ fontLoaded: true });
             await this._loadNewPlaybackInstance(false);
         })();
+    }
+
+    componentWillUnmount() {
+        this._onStopPressed();
+        this.playbackInstance = null;
     }
 
     async _loadNewPlaybackInstance(playing) {
@@ -166,12 +157,6 @@ export default class App extends React.Component {
         }
     };
 
-    _onVolumeSliderValueChange = value => {
-        if (this.playbackInstance != null) {
-            this.playbackInstance.setVolumeAsync(value);
-        }
-    };
-
     _onSeekSliderValueChange = value => {
         if (this.playbackInstance != null && !this.isSeeking) {
             this.isSeeking = true;
@@ -234,11 +219,10 @@ export default class App extends React.Component {
     render() {
         const { navigation } = this.props;
         const feed = navigation.getParam('feed', {});
-
         return (
             <View style={styles.container}>
                 <View style={styles.imageContainer}>
-                    <Image source={feed.thumbnail} resizeMode={'center'} />
+                    <Image style={styles.image} source={{url: feed.thumbnail}} resizeMode={'contain'} />
                 </View>
                 <View style={styles.nameContainer}>
                     <Text style={styles.text}>
@@ -255,8 +239,6 @@ export default class App extends React.Component {
                     ]}>
                     <Slider
                         style={styles.playbackSlider}
-                        trackImage={ICON_TRACK_1.module}
-                        thumbImage={ICON_THUMB_1.module}
                         value={this._getSeekSliderPosition()}
                         onValueChange={this._onSeekSliderValueChange}
                         onSlidingComplete={this._onSeekSliderSlidingComplete}
@@ -264,7 +246,7 @@ export default class App extends React.Component {
                     />
                     <View style={styles.timestampRow}>
                         <Text style={[styles.text, styles.buffering, ]}>
-                            {this.state.isBuffering ? BUFFERING_STRING : ''}
+                            {this.state.isBuffering ? 'buffering...' : ''}
                         </Text>
                         <Text style={[styles.text, styles.timestamp, ]}>
                             {this._getTimestamp()}
@@ -280,7 +262,6 @@ export default class App extends React.Component {
                         },
                     ]}>
                     <TouchableOpacity
-                        underlayColor={BACKGROUND_COLOR}
                         style={styles.wrapper}
                         onPress={this._onPlayPausePressed}
                         disabled={this.state.isLoading}>
@@ -290,23 +271,11 @@ export default class App extends React.Component {
                         />
                     </TouchableOpacity>
                     <TouchableOpacity
-                        underlayColor={BACKGROUND_COLOR}
                         style={styles.wrapper}
                         onPress={this._onStopPressed}
                         disabled={this.state.isLoading}>
                         <Image style={styles.button} source={ICON_STOP_BUTTON.module} />
                     </TouchableOpacity>
-                </View>
-                <View style={[styles.buttonsContainerBase, styles.buttonsContainerMiddleRow]}>
-                    <View style={styles.volumeContainer}>
-                        <Slider
-                            style={styles.volumeSlider}
-                            trackImage={ICON_TRACK_1.module}
-                            thumbImage={ICON_THUMB_2.module}
-                            value={1}
-                            onValueChange={this._onVolumeSliderValueChange}
-                        />
-                    </View>
                 </View>
             </View>
         );
@@ -318,20 +287,25 @@ const styles = StyleSheet.create({
         alignSelf: 'stretch',
     },
     container: {
-        flex: 1,
+        height: '100%',
+        width: '100%',
         flexDirection: 'column',
         // justifyContent: 'space-between',
         alignItems: 'center',
-        alignSelf: 'stretch',
+        paddingLeft: 10,
+        paddingRight: 10,
     },
     imageContainer: {
+        width: '100%',
         height: '70%',
         alignItems: 'center',
         justifyContent: 'center',
     },
     image: {
-        height: '80%',
-        width: '60%',
+        flex: 1,
+        alignSelf: 'stretch',
+        width: undefined,
+        height: undefined
     },
     wrapper: {},
     nameContainer: {
@@ -346,11 +320,13 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         alignSelf: 'stretch',
-        minHeight: ICON_THUMB_1.height * 2.0,
-        maxHeight: ICON_THUMB_1.height * 2.0,
+        minHeight: 38,
+        maxHeight: 38,
     },
     playbackSlider: {
         alignSelf: 'stretch',
+        paddingLeft: 10,
+        paddingRight: 10,
     },
     timestampRow: {
         flex: 1,
@@ -372,9 +348,6 @@ const styles = StyleSheet.create({
         textAlign: 'right',
         paddingRight: 20,
     },
-    button: {
-        backgroundColor: BACKGROUND_COLOR,
-    },
     buttonsContainerBase: {
         flex: 1,
         flexDirection: 'row',
@@ -386,20 +359,5 @@ const styles = StyleSheet.create({
         // minWidth: DEVICE_WIDTH / 2.0,
         // maxWidth: DEVICE_WIDTH / 2.0,
     },
-    buttonsContainerMiddleRow: {
-        maxHeight: ICON_MUTED_BUTTON.height,
-        alignSelf: 'stretch',
-        paddingRight: 20,
-    },
-    volumeContainer: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        // minWidth: DEVICE_WIDTH / 2.0,
-        // maxWidth: DEVICE_WIDTH / 2.0,
-    },
-    volumeSlider: {
-        // width: DEVICE_WIDTH / 2.0 - ICON_MUTED_BUTTON.width,
-    }
+
 });
