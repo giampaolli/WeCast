@@ -76,7 +76,6 @@ const DISABLED_OPACITY = 0.5;
 const FONT_SIZE = 14;
 const LOADING_STRING = '... loading ...';
 const BUFFERING_STRING = '...buffering...';
-const RATE_SCALE = 3.0;
 const VIDEO_CONTAINER_HEIGHT = DEVICE_HEIGHT * 2.0 / 5.0 - FONT_SIZE * 2;
 
 export default class App extends React.Component {
@@ -125,6 +124,7 @@ export default class App extends React.Component {
                 'cutive-mono-regular': require('../../../assets/fonts/CutiveMono-Regular.ttf'),
             });
             this.setState({ fontLoaded: true });
+            await this._loadNewPlaybackInstance(false);
         })();
     }
 
@@ -164,11 +164,6 @@ export default class App extends React.Component {
 
         this._updateScreenForLoading(false);
     }
-
-    _mountVideo = component => {
-        this._video = component;
-        this._loadNewPlaybackInstance(false);
-    };
 
     _updateScreenForLoading(isLoading) {
         if (isLoading) {
@@ -214,37 +209,6 @@ export default class App extends React.Component {
         }
     };
 
-    _onLoadStart = () => {
-        console.log(`ON LOAD START`);
-    };
-
-    _onLoad = status => {
-        console.log(`ON LOAD : ${JSON.stringify(status)}`);
-    };
-
-    _onError = error => {
-        console.log(`ON ERROR : ${error}`);
-    };
-
-    _onReadyForDisplay = event => {
-        const widestHeight = DEVICE_WIDTH * event.naturalSize.height / event.naturalSize.width;
-        if (widestHeight > VIDEO_CONTAINER_HEIGHT) {
-            this.setState({
-                videoWidth: VIDEO_CONTAINER_HEIGHT * event.naturalSize.width / event.naturalSize.height,
-                videoHeight: VIDEO_CONTAINER_HEIGHT,
-            });
-        } else {
-            this.setState({
-                videoWidth: DEVICE_WIDTH,
-                videoHeight: DEVICE_WIDTH * event.naturalSize.height / event.naturalSize.width,
-            });
-        }
-    };
-
-    _onFullscreenUpdate = event => {
-        console.log(`FULLSCREEN UPDATE : ${JSON.stringify(event.fullscreenUpdate)}`);
-    };
-
     _advanceIndex(forward) {
         this.index = (this.index + (forward ? 1 : PLAYLIST.length - 1)) % PLAYLIST.length;
     }
@@ -285,16 +249,6 @@ export default class App extends React.Component {
     _onVolumeSliderValueChange = value => {
         if (this.playbackInstance != null) {
             this.playbackInstance.setVolumeAsync(value);
-        }
-    };
-
-    _trySetRate = async (rate, shouldCorrectPitch) => {
-        if (this.playbackInstance != null) {
-            try {
-                await this.playbackInstance.setRateAsync(rate, shouldCorrectPitch);
-            } catch (error) {
-                // Rate changing could not be performed, possibly because the client's Android API is too old.
-            }
         }
     };
 
@@ -372,27 +326,6 @@ export default class App extends React.Component {
                     </Text>
                 </View>
                 <View style={styles.space} />
-                <View style={styles.videoContainer}>
-                    <Video
-                        ref={this._mountVideo}
-                        style={[
-                            styles.video,
-                            {
-                                opacity: this.state.showVideo ? 1.0 : 0.0,
-                                width: this.state.videoWidth,
-                                height: this.state.videoHeight,
-                            },
-                        ]}
-                        resizeMode={Video.RESIZE_MODE_CONTAIN}
-                        onPlaybackStatusUpdate={this._onPlaybackStatusUpdate}
-                        onLoadStart={this._onLoadStart}
-                        onLoad={this._onLoad}
-                        onError={this._onError}
-                        onFullscreenUpdate={this._onFullscreenUpdate}
-                        onReadyForDisplay={this._onReadyForDisplay}
-                        useNativeControls={this.state.useNativeControls}
-                    />
-                </View>
                 <View
                     style={[
                         styles.playbackContainer,
